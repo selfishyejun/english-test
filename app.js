@@ -119,8 +119,7 @@ function renderQuiz(){
   $('progressText').textContent=`${state.index+1} / ${state.session.length}`;
   $('progressBar').style.width=p+'%';
   $('prevBtn').disabled=state.index===0;
-  $('nextBtn').disabled=state.index===state.session.length-1;
-  $('mainAction').textContent=state.index===state.session.length-1?'채점하기':'답안 저장 · 다음';
+  $('mainAction').textContent=state.index===state.session.length-1?'채점하기':'다음';
   const item=q.source;
   const topic=state.difficulty==='easy'?`<div class="topic">${escapeHtml(item.title||'')}</div>`:'';
   let html=`<div class="meta"><div class="source-label">${escapeHtml(item.label)}</div>${topic}</div>`;
@@ -160,6 +159,6 @@ $('changeDifficulty').onclick=()=>{renderDifficulty();show('difficultyView');};
 document.querySelectorAll('[data-order]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-order]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');state.sort=btn.dataset.order;syncSummary();});
 document.querySelectorAll('[data-blocks]').forEach(btn=>btn.onclick=()=>{state.orderBlocks=btn.dataset.blocks;document.querySelectorAll('[data-blocks]').forEach(x=>x.classList.toggle('active',x===btn));renderSetup();});
 $('startBtn').onclick=()=>{state.lastSelection=[...state.selected];state.session=buildSession(state.lastSelection);state.index=0;if(!state.session.length)return;show('quizView');renderQuiz();};
-$('prevBtn').onclick=()=>{if(state.index>0){state.index--;renderQuiz();}};$('nextBtn').onclick=()=>{if(state.index<state.session.length-1){state.index++;renderQuiz();}};$('mainAction').onclick=mainAction;$('quitBtn').onclick=()=>{renderSetup();show('setupView');};$('backSetup').onclick=()=>{renderSetup();show('setupView');};
+$('prevBtn').onclick=()=>{if(state.index>0){state.index--;renderQuiz();}};$('mainAction').onclick=mainAction;$('quitBtn').onclick=()=>{renderSetup();show('setupView');};$('backSetup').onclick=()=>{renderSetup();show('setupView');};
 $('retrySame').onclick=()=>{state.session=buildSession(state.lastSelection);state.index=0;show('quizView');renderQuiz();};
 $('retryWrong').onclick=()=>{if(!state.lastWrong.length)return;state.session=buildSession(state.lastWrong);state.index=0;show('quizView');renderQuiz();};

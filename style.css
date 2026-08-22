@@ -35,7 +35,7 @@
 .insertion-text{font-family:Georgia,"Times New Roman",serif;font-size:17.5px;line-height:2;text-wrap:pretty}
 .gap{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid #7d8691;border-radius:50%;font-family:system-ui,sans-serif;font-size:13px;font-weight:900;background:#fff;margin:3px 6px;vertical-align:middle}
 .gap:hover,.gap.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
-.quiz-nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.quiz-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .navbtn{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:800}
 .navbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .navbtn:disabled{opacity:.35;cursor:not-allowed}
@@ -83,7 +83,6 @@ body.quiz-mode .ghost{background:transparent;border:0;padding:7px 4px}
   .order-choices{grid-template-columns:1fr 1fr}.order-choice:last-child:nth-child(odd){grid-column:1/-1}
   .input-help{font-size:11px;line-height:1.5}
   .quiz-nav{grid-template-columns:1fr 1fr;gap:7px}
-  .quiz-nav .primary{grid-column:1/-1;grid-row:1}
   .navbtn{min-height:48px}
   .stat-grid{grid-template-columns:1fr}
   .stat-grid div+div{border-left:0;border-top:1px solid var(--line)}
