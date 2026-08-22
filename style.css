@@ -27,7 +27,7 @@
 .order-part .label{font-family:Georgia,"Times New Roman",serif;font-weight:700}
 .answer-zone{margin-top:36px;padding-top:20px;border-top:1px solid var(--line)}
 .answer-zone label{display:block;font-size:13px;font-weight:900;margin-bottom:9px}
-.manual-input{width:240px;max-width:100%;border:1px solid #9fa7b2;border-radius:10px;padding:13px 14px;font-size:16px;text-transform:uppercase;font-weight:900;letter-spacing:.18em;outline:none}
+.manual-input{width:240px;max-width:100%;border:1px solid #9fa7b2;border-radius:10px;padding:13px 14px;font-size:16px;font-weight:900;letter-spacing:.18em;outline:none}
 .manual-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent2)}
 .order-choices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.order-choice{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}.order-choice span{color:var(--muted);font-size:14px}.order-choice strong{font-family:Georgia,"Times New Roman",serif;font-size:14px;white-space:nowrap}.order-choice:hover,.order-choice.selected{border-color:var(--accent);background:var(--accent2);color:var(--accent)}.order-choice.selected span{color:var(--accent)}
 .input-help{font-size:11px;line-height:1.5;color:var(--muted);margin-top:8px}

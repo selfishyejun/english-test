@@ -6,6 +6,7 @@ const $=id=>document.getElementById(id);
 function show(id){views.forEach(v=>$(v).classList.toggle('active',v===id));document.body.classList.toggle('quiz-mode',id==='quizView');window.scrollTo({top:0,behavior:'instant'});}
 function wordCount(s){return (s.match(/[A-Za-zÀ-ÿ0-9]+(?:['’\-][A-Za-zÀ-ÿ0-9]+)*/g)||[]).length;}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function sanitizeOrderInput(value,allowed){let out='',seen=new Set();for(const char of String(value)){const upper=char.toUpperCase();if(allowed.includes(upper)&&!seen.has(upper)){out+=char;seen.add(upper);}}return out.slice(0,allowed.length);}
 function sourceSort(a,b){if(a.sourceType!==b.sourceType)return a.sourceType==='mock'?-1:1;if(a.sourceType==='mock')return a.year-b.year||a.questionNumber-b.questionNumber;return a.lesson-b.lesson||(SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===a.lesson).findIndex(x=>x.id===a.id)-SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===b.lesson).findIndex(x=>x.id===b.id));}
 function eligible(item){return Array.isArray(item.sentences)&&item.sentences.length>=3;}
 function renderDifficulty(){$('difficultyTypeLabel').textContent=state.type==='order'?'순서 문제':'문장 삽입';}
@@ -131,7 +132,7 @@ function renderQuiz(){
     }else{
       const allowed=LETTERS.slice(0,q.blocks.length);
       const example=q.blocks.length===5?'CEADB':q.blocks.length===4?'BCAD':'BCA';
-      html+=`<div class="answer-zone"><label for="orderInput">정답 입력</label><input id="orderInput" class="manual-input" maxlength="${q.blocks.length}" autocomplete="off" placeholder="예: ${example}" value="${escapeHtml(q.user||'')}"><div class="input-help">${allowed.join(', ')}를 한 번씩 직접 입력하세요. Enter를 누르면 저장 후 다음 문제로 넘어갑니다.</div></div>`;
+      html+=`<div class="answer-zone"><label for="orderInput">정답 입력</label><input id="orderInput" class="manual-input" maxlength="${q.blocks.length}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="예: ${example.toLowerCase()} 또는 ${example}" value="${escapeHtml(q.user||'')}"><div class="input-help">${allowed.join(', ')}를 대·소문자 상관없이 한 번씩 입력하세요. Enter를 누르면 다음 문제로 넘어갑니다.</div></div>`;
     }
   }else{
     html+=`<h2 class="question-prompt">주어진 문장이 들어가기에 가장 적절한 곳을 고르시오.</h2><div class="insert-sentence">${escapeHtml(q.target)}</div><div class="insertion-text">${renderInsertion(q)}</div><div class="answer-zone"><label>선택한 위치</label><div class="input-help" style="font-size:12px">${q.user?q.user+'번':insertionChoiceRange(q)+' 중 하나를 클릭하세요.'}</div></div>`;
@@ -142,7 +143,7 @@ function renderQuiz(){
   }else if(q.kind==='order'){
     const inp=$('orderInput'),allowed=LETTERS.slice(0,q.blocks.length);
     inp.focus();
-    inp.addEventListener('input',()=>{let v=inp.value.toUpperCase().split('').filter(c=>allowed.includes(c)).join('');let uniq='';for(const c of v)if(!uniq.includes(c))uniq+=c;inp.value=uniq.slice(0,q.blocks.length);q.user=inp.value;});
+    inp.addEventListener('input',()=>{inp.value=sanitizeOrderInput(inp.value,allowed);q.user=inp.value;});
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mainAction();}});
   }else{
     document.querySelectorAll('.gap').forEach(btn=>btn.onclick=()=>{q.user=btn.dataset.num;renderQuiz();});
@@ -151,7 +152,8 @@ function renderQuiz(){
 function renderInsertion(q){let out='';const gapMap=new Map(q.gaps.map((g,i)=>[g,i+1]));for(let i=0;i<=q.remaining.length;i++){if(gapMap.has(i)){const num=gapMap.get(i);out+=` <button class="gap ${q.user===String(num)?'selected':''}" data-num="${num}">${['','①','②','③','④','⑤'][num]}</button> `}if(i<q.remaining.length)out+=escapeHtml(q.remaining[i])+' ';}return out;}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 function mainAction(){const q=state.session[state.index];if(q.kind==='order'&&state.difficulty==='hard'&&q.user.length!==q.blocks.length){$('orderInput')?.focus();return}if(!q.user)return;if(state.index===state.session.length-1)grade();else{state.index++;renderQuiz();}}
-function grade(){const total=state.session.length,correct=state.session.filter(q=>q.user===q.answer).length,wrong=state.session.filter(q=>q.user!==q.answer);state.lastWrong=wrong.map(q=>q.source.id);const pct=total?Math.round(correct/total*100):0;$('score').textContent=pct+'%';$('scoreSub').textContent=`${correct} / ${total} 정답`;$('statTotal').textContent=total;$('statCorrect').textContent=correct;$('statWrong').textContent=total-correct;$('retryWrong').disabled=wrong.length===0;const list=$('wrongList');list.innerHTML=wrong.length?wrong.map(q=>`<div class="wrong"><div><strong>${escapeHtml(q.source.label)}</strong><small>${escapeHtml(q.source.title||'')}</small></div><div class="ans">내 답 ${escapeHtml(q.user||'미입력')}<br>정답 ${escapeHtml(q.answer)}</div></div>`).join(''):'<div style="text-align:center;color:var(--good);font-weight:900">전부 맞았습니다.</div>';show('resultView');}
+function answerMatches(q){return q.kind==='order'?String(q.user||'').toUpperCase()===q.answer:String(q.user||'')===q.answer;}
+function grade(){const total=state.session.length,correct=state.session.filter(answerMatches).length,wrong=state.session.filter(q=>!answerMatches(q));state.lastWrong=wrong.map(q=>q.source.id);const pct=total?Math.round(correct/total*100):0;$('score').textContent=pct+'%';$('scoreSub').textContent=`${correct} / ${total} 정답`;$('statTotal').textContent=total;$('statCorrect').textContent=correct;$('statWrong').textContent=total-correct;$('retryWrong').disabled=wrong.length===0;const list=$('wrongList');list.innerHTML=wrong.length?wrong.map(q=>`<div class="wrong"><div><strong>${escapeHtml(q.source.label)}</strong><small>${escapeHtml(q.source.title||'')}</small></div><div class="ans">내 답 ${escapeHtml(q.user||'미입력')}<br>정답 ${escapeHtml(q.answer)}</div></div>`).join(''):'<div style="text-align:center;color:var(--good);font-weight:900">전부 맞았습니다.</div>';show('resultView');}
 document.querySelectorAll('.type-btn[data-type]').forEach(btn=>btn.onclick=()=>{state.type=btn.dataset.type;state.difficulty=null;state.selected.clear();renderDifficulty();show('difficultyView');});
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.onclick=()=>{state.difficulty=btn.dataset.difficulty;renderSetup();show('setupView');});
 $('backType').onclick=()=>show('landingView');
