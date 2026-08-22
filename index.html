@@ -1,11 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>고1 2학기 중간 순서 삽입</title>
-<style>
-/* Placeholder bootstrap file. Full site upload follows in subsequent commit. */
-body{font-family:Arial,sans-serif;margin:40px;line-height:1.6} .box{max-width:760px;margin:auto} 
-</style>
-</head><body><div class="box"><h1>고1 2학기 중간 순서 삽입</h1><p>사이트 배포 파일을 준비 중입니다.</p></div></body></html>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+  <div class="brand">ENGLISH PRACTICE</div>
+
+  <section id="landingView" class="view active landing">
+    <div class="landing-inner">
+      <h1>고1 2학기 중간 순서 삽입</h1>
+      <p>풀고 싶은 문제 유형을 먼저 선택하세요.</p>
+      <div class="type-grid">
+        <button class="type-btn" data-type="order"><span class="type-mark">ABC</span><strong>순서 문제</strong><span>주어진 글 뒤의 (A)~(E) 의미 덩어리를 올바른 순서로 배열합니다.</span></button>
+        <button class="type-btn" data-type="insertion"><span class="type-mark">①</span><strong>문장 삽입</strong><span>주어진 문장이 들어갈 가장 적절한 위치 ①~⑤를 선택합니다.</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="setupView" class="view">
+    <div class="setup-head"><div><h1 id="setupTitle">순서 문제 선택</h1></div><button id="changeType" class="ghost">문제유형 변경</button></div>
+    <div class="setup-grid">
+      <div class="panel source-panel">
+        <h2 class="section-title">모의고사</h2>
+        <p class="subnote">연도 전체를 체크하거나, 펼쳐서 번호별로 고를 수 있습니다.</p>
+        <div id="mockGroups"></div>
+        <h2 class="section-title" style="margin-top:24px">교과서 본문</h2>
+        <p class="subnote">1과·2과 전체 또는 본문 안의 자연스러운 구간별로 선택합니다.</p>
+        <div id="lessonGroups"></div>
+      </div>
+      <aside class="panel option-panel">
+        <div class="option-block"><div class="section-title">출제 순서</div><div class="segment"><button class="active" data-order="ordered">연도·번호 순</button><button data-order="random">랜덤</button></div></div>
+        <div id="blockOption" class="option-block"><div class="section-title">순서 문제 분할</div><div class="segment three"><button class="active" data-blocks="auto">자동</button><button data-blocks="4">4개</button><button data-blocks="5">5개</button></div><p class="subnote" style="margin:8px 0 0">자동은 지문 길이와 블록 길이를 보고 3~5개 중 자연스럽게 결정합니다. 긴 지문은 4~5개를 우선합니다.</p></div>
+        <div class="summary"><div><span>문제 유형</span><strong id="sumType">순서</strong></div><div><span>선택 문제</span><strong id="sumCount">0개</strong></div><div><span>출제 순서</span><strong id="sumOrder">연도·번호 순</strong></div><div id="sumBlocksRow"><span>분할 방식</span><strong id="sumBlocks">자동</strong></div></div>
+        <button id="startBtn" class="start" disabled>시작</button>
+        <div id="startNote" class="warning">문제를 하나 이상 선택하세요.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="quizView" class="view">
+    <div class="quiz-wrap">
+      <div class="quiz-top"><button id="quitBtn" class="ghost">← 문제 선택</button><div class="progress"><span id="progressText">1 / 1</span><span class="bar"><i id="progressBar"></i></span></div></div>
+      <div id="quizPaper" class="panel quiz-paper"></div>
+      <div class="quiz-nav"><button id="prevBtn" class="navbtn">이전</button><button id="mainAction" class="navbtn primary">답안 저장 · 다음</button><button id="nextBtn" class="navbtn">다음</button></div>
+    </div>
+  </section>
+
+  <section id="resultView" class="view">
+    <div class="panel result">
+      <h2>채점 결과</h2><div id="score" class="score">0%</div><div id="scoreSub" class="score-sub"></div>
+      <div class="stat-grid"><div><span>총 문제</span><strong id="statTotal">0</strong></div><div><span>정답</span><strong id="statCorrect">0</strong></div><div><span>오답</span><strong id="statWrong">0</strong></div></div>
+      <div class="result-actions"><button id="retrySame" class="navbtn">같은 선택 다시 풀기</button><button id="retryWrong" class="navbtn">오답만 다시 풀기</button><button id="backSetup" class="navbtn primary">문제 다시 선택</button></div>
+      <div id="wrongList" class="wrong-list"></div>
+    </div>
+  </section>
+</div>
+<script src="data1.js"></script>
+<script src="data2.js"></script>
+<script src="data3.js"></script>
+<script src="data4.js"></script>
+<script src="data5.js"></script>
+<script src="data6.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>
