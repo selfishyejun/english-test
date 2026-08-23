@@ -7,6 +7,10 @@ function show(id){views.forEach(v=>$(v).classList.toggle('active',v===id));docum
 function wordCount(s){return (s.match(/[A-Za-zÀ-ÿ0-9]+(?:['’\-][A-Za-zÀ-ÿ0-9]+)*/g)||[]).length;}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function sanitizeOrderInput(value,allowed){let out='',seen=new Set();for(const char of String(value)){const upper=char.toUpperCase();if(allowed.includes(upper)&&!seen.has(upper)){out+=char;seen.add(upper);}}return out.slice(0,allowed.length);}
+function normalizedOrder(value){return String(value||'').toUpperCase();}
+function toggleOrderPick(q,label){const current=normalizedOrder(q.user).split('');const index=current.indexOf(label);if(index>=0)current.splice(index,1);else if(current.length<q.blocks.length)current.push(label);q.user=current.join('');}
+function touchOrderSlots(value,count){const order=normalizedOrder(value);return Array.from({length:count},(_,i)=>`<span class="touch-slot ${order[i]?'filled':''}"><i>${i+1}</i><b>${order[i]||'?'}</b></span>`).join('');}
+function syncHardOrderUI(q){const order=normalizedOrder(q.user);document.querySelectorAll('.order-pick').forEach(btn=>{const rank=order.indexOf(btn.dataset.label)+1;btn.classList.toggle('selected',rank>0);btn.setAttribute('aria-pressed',String(rank>0));btn.setAttribute('aria-label',`${btn.dataset.label} 블록${rank?` ${rank}번째 선택`:''}`);const badge=btn.querySelector('.order-rank');if(badge)badge.textContent=rank||'';});const sequence=$('touchOrderSequence');if(sequence)sequence.innerHTML=touchOrderSlots(order,q.blocks.length);const clear=$('clearOrder');if(clear)clear.disabled=!order;}
 function sourceSort(a,b){if(a.sourceType!==b.sourceType)return a.sourceType==='mock'?-1:1;if(a.sourceType==='mock')return a.year-b.year||a.questionNumber-b.questionNumber;return a.lesson-b.lesson||(SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===a.lesson).findIndex(x=>x.id===a.id)-SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===b.lesson).findIndex(x=>x.id===b.id));}
 function eligible(item){return Array.isArray(item.sentences)&&item.sentences.length>=3;}
 function renderDifficulty(){$('difficultyTypeLabel').textContent=state.type==='order'?'순서 문제':'문장 삽입';}
@@ -125,14 +129,16 @@ function renderQuiz(){
   const topic=state.difficulty==='easy'?`<div class="topic">${escapeHtml(item.title||'')}</div>`:'';
   let html=`<div class="meta"><div class="source-label">${escapeHtml(item.label)}</div>${topic}</div>`;
   if(q.kind==='order'){
-    html+=`<h2 class="question-prompt">주어진 글 다음에 이어질 글의 순서로 가장 적절한 것을 고르시오.</h2><div class="lead">${escapeHtml(q.lead)}</div><div class="order-list">`+q.blocks.map(b=>`<div class="order-part"><div class="label">(${b.label})</div><div>${escapeHtml(b.text)}</div></div>`).join('')+'</div>';
+    const currentOrder=normalizedOrder(q.user);
+    const blocks=q.blocks.map(b=>{const rank=currentOrder.indexOf(b.label)+1;const label=state.difficulty==='hard'?`<button type="button" class="label order-pick ${rank?'selected':''}" data-label="${b.label}" aria-pressed="${rank>0}" aria-label="${b.label} 블록${rank?` ${rank}번째 선택`:''}"><span>(${b.label})</span><i class="order-rank">${rank||''}</i></button>`:`<div class="label">(${b.label})</div>`;return `<div class="order-part ${state.difficulty==='hard'?'touch-enabled':''}">${label}<div>${escapeHtml(b.text)}</div></div>`;}).join('');
+    html+=`<h2 class="question-prompt">주어진 글 다음에 이어질 글의 순서로 가장 적절한 것을 고르시오.</h2><div class="lead">${escapeHtml(q.lead)}</div><div class="order-list">${blocks}</div>`;
     if(state.difficulty==='easy'){
       const marks=['①','②','③','④','⑤'];
       html+=`<div class="answer-zone"><label>정답 선택</label><div class="order-choices">`+q.options.map((option,i)=>`<button class="order-choice ${q.user===option?'selected':''}" data-answer="${option}"><span>${marks[i]}</span><strong>${option.split('').join(' - ')}</strong></button>`).join('')+`</div><div class="input-help">가장 자연스럽게 이어지는 순서를 선택하세요.</div></div>`;
     }else{
       const allowed=LETTERS.slice(0,q.blocks.length);
       const example=q.blocks.length===5?'CEADB':q.blocks.length===4?'BCAD':'BCA';
-      html+=`<div class="answer-zone"><label for="orderInput">정답 입력</label><input id="orderInput" class="manual-input" maxlength="${q.blocks.length}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="예: ${example.toLowerCase()} 또는 ${example}" value="${escapeHtml(q.user||'')}"><div class="input-help">${allowed.join(', ')}를 대·소문자 상관없이 한 번씩 입력하세요. Enter를 누르면 다음 문제로 넘어갑니다.</div></div>`;
+      html+=`<div class="answer-zone hard-order-answer"><label>정답 순서</label><div class="touch-order-row"><div id="touchOrderSequence" class="touch-order-sequence">${touchOrderSlots(q.user,q.blocks.length)}</div><button id="clearOrder" class="clear-order" type="button" ${q.user?'':'disabled'}>초기화</button></div><div class="input-help touch-help">위의 (A)~(${allowed.at(-1)})를 답 순서대로 누르세요. 선택된 문자를 다시 누르면 취소됩니다.</div><div class="manual-answer"><label for="orderInput">키보드 입력</label><input id="orderInput" class="manual-input" maxlength="${q.blocks.length}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="예: ${example.toLowerCase()} 또는 ${example}" value="${escapeHtml(q.user||'')}"><div class="input-help">${allowed.join(', ')}를 대·소문자 상관없이 한 번씩 입력할 수도 있습니다.</div></div></div>`;
     }
   }else{
     html+=`<h2 class="question-prompt">주어진 문장이 들어가기에 가장 적절한 곳을 고르시오.</h2><div class="insert-sentence">${escapeHtml(q.target)}</div><div class="insertion-text">${renderInsertion(q)}</div><div class="answer-zone"><label>선택한 위치</label><div class="input-help" style="font-size:12px">${q.user?q.user+'번':insertionChoiceRange(q)+' 중 하나를 클릭하세요.'}</div></div>`;
@@ -142,8 +148,10 @@ function renderQuiz(){
     document.querySelectorAll('.order-choice').forEach(btn=>btn.onclick=()=>{q.user=btn.dataset.answer;renderQuiz();});
   }else if(q.kind==='order'){
     const inp=$('orderInput'),allowed=LETTERS.slice(0,q.blocks.length);
-    inp.focus();
-    inp.addEventListener('input',()=>{inp.value=sanitizeOrderInput(inp.value,allowed);q.user=inp.value;});
+    document.querySelectorAll('.order-pick').forEach(btn=>btn.onclick=()=>{toggleOrderPick(q,btn.dataset.label);renderQuiz();});
+    $('clearOrder').onclick=()=>{q.user='';renderQuiz();};
+    if(!window.matchMedia||!window.matchMedia('(max-width: 560px)').matches)inp.focus();
+    inp.addEventListener('input',()=>{inp.value=sanitizeOrderInput(inp.value,allowed);q.user=inp.value;syncHardOrderUI(q);});
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mainAction();}});
   }else{
     document.querySelectorAll('.gap').forEach(btn=>btn.onclick=()=>{q.user=btn.dataset.num;renderQuiz();});
@@ -151,7 +159,7 @@ function renderQuiz(){
 }
 function renderInsertion(q){let out='';const gapMap=new Map(q.gaps.map((g,i)=>[g,i+1]));for(let i=0;i<=q.remaining.length;i++){if(gapMap.has(i)){const num=gapMap.get(i);out+=` <button class="gap ${q.user===String(num)?'selected':''}" data-num="${num}">${['','①','②','③','④','⑤'][num]}</button> `}if(i<q.remaining.length)out+=escapeHtml(q.remaining[i])+' ';}return out;}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-function mainAction(){const q=state.session[state.index];if(q.kind==='order'&&state.difficulty==='hard'&&q.user.length!==q.blocks.length){$('orderInput')?.focus();return}if(!q.user)return;if(state.index===state.session.length-1)grade();else{state.index++;renderQuiz();}}
+function mainAction(){const q=state.session[state.index];if(q.kind==='order'&&state.difficulty==='hard'&&q.user.length!==q.blocks.length){if(!window.matchMedia||!window.matchMedia('(max-width: 560px)').matches)$('orderInput')?.focus();const sequence=$('touchOrderSequence');sequence?.classList.add('needs-answer');setTimeout(()=>sequence?.classList.remove('needs-answer'),500);return}if(!q.user)return;if(state.index===state.session.length-1)grade();else{state.index++;renderQuiz();}}
 function answerMatches(q){return q.kind==='order'?String(q.user||'').toUpperCase()===q.answer:String(q.user||'')===q.answer;}
 function grade(){const total=state.session.length,correct=state.session.filter(answerMatches).length,wrong=state.session.filter(q=>!answerMatches(q));state.lastWrong=wrong.map(q=>q.source.id);const pct=total?Math.round(correct/total*100):0;$('score').textContent=pct+'%';$('scoreSub').textContent=`${correct} / ${total} 정답`;$('statTotal').textContent=total;$('statCorrect').textContent=correct;$('statWrong').textContent=total-correct;$('retryWrong').disabled=wrong.length===0;const list=$('wrongList');list.innerHTML=wrong.length?wrong.map(q=>`<div class="wrong"><div><strong>${escapeHtml(q.source.label)}</strong><small>${escapeHtml(q.source.title||'')}</small></div><div class="ans">내 답 ${escapeHtml(q.user||'미입력')}<br>정답 ${escapeHtml(q.answer)}</div></div>`).join(''):'<div style="text-align:center;color:var(--good);font-weight:900">전부 맞았습니다.</div>';show('resultView');}
 document.querySelectorAll('.type-btn[data-type]').forEach(btn=>btn.onclick=()=>{state.type=btn.dataset.type;state.difficulty=null;state.selected.clear();renderDifficulty();show('difficultyView');});
