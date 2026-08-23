@@ -11,7 +11,7 @@ function normalizedOrder(value){return String(value||'').toUpperCase();}
 function pickedOrder(q){return normalizedOrder(q.options?q.touchOrder:q.user);}
 function toggleOrderPick(q,label){const current=pickedOrder(q).split('');const index=current.indexOf(label);if(index>=0)current.splice(index,1);else if(current.length<q.blocks.length)current.push(label);const value=current.join('');if(q.options){q.touchOrder=value;q.user=value.length===q.blocks.length&&q.options.includes(value)?value:'';}else q.user=value;}
 function touchOrderSlots(value,count){const order=normalizedOrder(value);return Array.from({length:count},(_,i)=>`<span class="touch-slot ${order[i]?'filled':''}"><i>${i+1}</i><b>${order[i]||'?'}</b></span>`).join('');}
-function syncOrderPickUI(q){const order=pickedOrder(q);document.querySelectorAll('.order-pick').forEach(btn=>{const rank=order.indexOf(btn.dataset.label)+1;btn.classList.toggle('selected',rank>0);btn.setAttribute('aria-pressed',String(rank>0));btn.setAttribute('aria-label',`${btn.dataset.label} 블록${rank?` ${rank}번째 선택`:''}`);const badge=btn.querySelector('.order-rank');if(badge)badge.textContent=rank||'';});const sequence=$('touchOrderSequence');if(sequence)sequence.innerHTML=touchOrderSlots(order,q.blocks.length);const clear=$('clearOrder');if(clear)clear.disabled=!order;}
+function syncOrderPickUI(q){const order=pickedOrder(q);document.querySelectorAll('.order-part.touch-enabled').forEach(part=>{const label=part.dataset.label,rank=order.indexOf(label)+1;part.classList.toggle('selected',rank>0);part.setAttribute('aria-pressed',String(rank>0));part.setAttribute('aria-label',`${label} 블록${rank?` ${rank}번째 선택`:''}`);const picker=part.querySelector('.order-pick');picker?.classList.toggle('selected',rank>0);const badge=part.querySelector('.order-rank');if(badge)badge.textContent=rank||'';});const sequence=$('touchOrderSequence');if(sequence)sequence.innerHTML=touchOrderSlots(order,q.blocks.length);const clear=$('clearOrder');if(clear)clear.disabled=!order;}
 function touchOrderMessage(q){const order=pickedOrder(q);if(!order)return `위의 (A)~(${LETTERS[q.blocks.length-1]})를 답 순서대로 누르거나 아래 선택지를 고르세요.`;if(order.length<q.blocks.length)return `${q.blocks.length-order.length}개를 더 선택하세요.`;if(q.options&&!q.options.includes(order))return '아래 선택지에 없는 순서입니다. 문자를 다시 눌러 수정하세요.';return '선택한 순서가 아래 선택지에 반영되었습니다.';}
 function sourceSort(a,b){if(a.sourceType!==b.sourceType)return a.sourceType==='mock'?-1:1;if(a.sourceType==='mock')return a.year-b.year||a.questionNumber-b.questionNumber;return a.lesson-b.lesson||(SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===a.lesson).findIndex(x=>x.id===a.id)-SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===b.lesson).findIndex(x=>x.id===b.id));}
 function eligible(item){return Array.isArray(item.sentences)&&item.sentences.length>=3;}
@@ -132,7 +132,7 @@ function renderQuiz(){
   let html=`<div class="meta"><div class="source-label">${escapeHtml(item.label)}</div>${topic}</div>`;
   if(q.kind==='order'){
     const currentOrder=pickedOrder(q);
-    const blocks=q.blocks.map(b=>{const rank=currentOrder.indexOf(b.label)+1;const label=`<button type="button" class="label order-pick ${rank?'selected':''}" data-label="${b.label}" aria-pressed="${rank>0}" aria-label="${b.label} 블록${rank?` ${rank}번째 선택`:''}"><span>(${b.label})</span><i class="order-rank">${rank||''}</i></button>`;return `<div class="order-part touch-enabled">${label}<div>${escapeHtml(b.text)}</div></div>`;}).join('');
+    const blocks=q.blocks.map(b=>{const rank=currentOrder.indexOf(b.label)+1;const label=`<span class="label order-pick ${rank?'selected':''}"><span>(${b.label})</span><i class="order-rank">${rank||''}</i></span>`;return `<div class="order-part touch-enabled ${rank?'selected':''}" data-label="${b.label}" role="button" tabindex="0" aria-pressed="${rank>0}" aria-label="${b.label} 블록${rank?` ${rank}번째 선택`:''}">${label}<div>${escapeHtml(b.text)}</div></div>`;}).join('');
     html+=`<h2 class="question-prompt">주어진 글 다음에 이어질 글의 순서로 가장 적절한 것을 고르시오.</h2><div class="lead">${escapeHtml(q.lead)}</div><div class="order-list">${blocks}</div>`;
     if(state.difficulty==='easy'){
       const marks=['①','②','③','④','⑤'];
@@ -147,7 +147,7 @@ function renderQuiz(){
   }
   $('quizPaper').innerHTML=html;
   if(q.kind==='order'){
-    document.querySelectorAll('.order-pick').forEach(btn=>btn.onclick=()=>{toggleOrderPick(q,btn.dataset.label);renderQuiz();});
+    document.querySelectorAll('.order-part.touch-enabled').forEach(part=>{const choose=()=>{toggleOrderPick(q,part.dataset.label);renderQuiz();};part.onclick=choose;part.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();}};});
     $('clearOrder').onclick=()=>{q.user='';q.touchOrder='';renderQuiz();};
   }
   if(q.kind==='order'&&state.difficulty==='easy'){
