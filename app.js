@@ -320,7 +320,6 @@ function renderQuiz(){
     document.querySelectorAll('.order-choice').forEach(btn=>btn.onclick=()=>{q.user=btn.dataset.answer;q.touchOrder=btn.dataset.answer;renderQuiz();});
   }else if(q.kind==='order'){
     const inp=$('orderInput'),allowed=LETTERS.slice(0,q.blocks.length);
-    if(!window.matchMedia||!window.matchMedia('(max-width: 560px)').matches)inp.focus();
     inp.addEventListener('input',()=>{inp.value=sanitizeOrderInput(inp.value,allowed);q.user=inp.value;syncOrderPickUI(q);});
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mainAction();}});
   }else if(q.kind==='insertion'){
