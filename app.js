@@ -154,7 +154,7 @@ function makeInsertion(item){
   const pool=cand.slice(0,Math.min(4,cand.length));
   const chosen=pool[Math.floor(Math.random()*pool.length)];
   const idx=chosen.i,target=s[idx],remaining=s.filter((_,i)=>i!==idx);
-  const allGaps=Array.from({length:remaining.length+1},(_,i)=>i);
+  const allGaps=Array.from({length:remaining.length},(_,i)=>i+1);
   const correctGap=idx;
   let selected=[correctGap];
   const distract=shuffle(allGaps.filter(g=>g!==correctGap));
