@@ -1,5 +1,5 @@
 const LETTERS=['A','B','C','D','E'];
-const state={type:null,difficulty:null,selected:new Set(),sort:'ordered',orderBlocks:'auto',openMocks:new Set(),openLessons:new Set(),session:[],index:0,lastSelection:[],lastWrong:[]};
+const state={type:null,difficulty:null,selected:new Set(),sort:'ordered',orderBlocks:'auto',openMocks:new Set(),openLessons:new Set(),session:[],index:0,lastSelection:[],lastWrong:[],resumeScroll:null};
 const byId=new Map(SOURCE_DATA.map(x=>[x.id,x]));
 const views=['landingView','difficultyView','setupView','quizView','resultView'];
 const $=id=>document.getElementById(id);
@@ -331,17 +331,59 @@ function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;',
 function markNeedsAnswer(element){element?.classList.add('needs-answer');setTimeout(()=>element?.classList.remove('needs-answer'),500);}
 function mainAction(){const q=state.session[state.index];if(q.kind==='word-order'&&q.user.length!==q.tokens.length){markNeedsAnswer($('wordAnswer'));return}if(q.kind==='order'&&q.user.length!==q.blocks.length){if(state.difficulty==='hard'&&(!window.matchMedia||!window.matchMedia('(max-width: 560px)').matches))$('orderInput')?.focus();markNeedsAnswer($('touchOrderSequence'));return}if(!String(q.user||'').trim()){if(q.kind==='context-vocab'&&state.difficulty==='hard')$('contextInput')?.focus();markNeedsAnswer($('answerChoices')||$('contextInput'));return}if(state.index===state.session.length-1)grade();else{state.index++;renderQuiz();}}
 function answerMatches(q){if(q.kind==='word-order')return q.user.length===q.answer.length&&q.user.every((id,i)=>id===q.answer[i]);if(q.kind==='context-vocab')return normalizeVocab(q.user)===normalizeVocab(q.answer);return q.kind==='order'?String(q.user||'').toUpperCase()===q.answer:String(q.user||'')===q.answer;}
+function hasCompleteAnswer(q){
+  if(q.kind==='word-order')return Array.isArray(q.user)&&q.user.length===q.tokens.length&&new Set(q.user).size===q.tokens.length&&q.user.every(id=>q.tokens.some(token=>token.id===id));
+  if(q.kind==='order'){
+    const value=normalizedOrder(q.user),labels=q.blocks.map(block=>block.label);
+    return value.length===labels.length&&new Set(value).size===labels.length&&[...value].every(label=>labels.includes(label))&&(!q.options||q.options.includes(value));
+  }
+  return String(q.user??'').trim().length>0;
+}
+function gradingSummary(session,partial=false){
+  const questions=partial?session.filter(hasCompleteAnswer):session;
+  const wrong=questions.filter(q=>!answerMatches(q));
+  return {total:questions.length,correct:questions.length-wrong.length,wrong,remaining:session.length-questions.length};
+}
 function displayedUser(q){if(q.kind==='word-order')return q.user.length?wordText(q,q.user):'미입력';if(q.kind==='connective'){const option=q.options.find(candidate=>candidate.key===q.user);return option?connectorOptionText(option.values):'미입력';}return q.user||'미입력';}
 function displayedAnswer(q){if(q.kind==='word-order')return wordText(q,q.answer);if(q.kind==='connective')return connectorOptionText(q.correctValues);return q.answer;}
 function questionKey(q){if(q.kind==='word-order')return wordQuestionKey(q);if(q.kind==='context-vocab')return contextQuestionKey(q);if(q.kind==='connective')return connectiveQuestionKey(q);return q.source.id;}
-function grade(){const total=state.session.length,correct=state.session.filter(answerMatches).length,wrong=state.session.filter(q=>!answerMatches(q));state.lastWrong=wrong.map(questionKey);const pct=total?Math.round(correct/total*100):0;$('score').textContent=pct+'%';$('scoreSub').textContent=`${correct} / ${total} 정답`;$('statTotal').textContent=total;$('statCorrect').textContent=correct;$('statWrong').textContent=total-correct;$('retryWrong').disabled=wrong.length===0;const list=$('wrongList');list.innerHTML=wrong.length?wrong.map(q=>{const label=questionSourceLabel(q),title=state.difficulty==='easy'?`<small>${escapeHtml(q.source.title||'')}</small>`:'';return `<div class="wrong ${q.kind==='word-order'?'word-wrong':''}"><div><strong>${escapeHtml(label)}</strong>${title}</div><div class="ans">내 답 ${escapeHtml(displayedUser(q))}<br>정답 ${escapeHtml(displayedAnswer(q))}</div></div>`;}).join(''):'<div style="text-align:center;color:var(--good);font-weight:900">전부 맞았습니다.</div>';show('resultView');}
+function grade({partial=false}={}){
+  const {total,correct,wrong,remaining}=gradingSummary(state.session,partial);
+  state.resumeScroll=partial?{left:window.scrollX,top:window.scrollY}:null;
+  if(!partial)state.lastWrong=wrong.map(questionKey);
+  const pct=total?Math.round(correct/total*100):0;
+  $('resultTitle').textContent=partial?'중간 채점':'채점 결과';
+  $('score').textContent=partial&&!total?'—':pct+'%';
+  $('scoreSub').textContent=partial&&!total?'아직 채점할 답안이 없습니다.':`${correct} / ${total} 정답`;
+  $('statTotalLabel').textContent=partial?'푼 문제':'총 문제';
+  $('statTotal').textContent=total;$('statCorrect').textContent=correct;$('statWrong').textContent=total-correct;
+  $('midGradeNote').hidden=!partial;
+  $('midGradeNote').textContent=partial?`전체 ${state.session.length}문제 중 ${total}문제 채점 · ${remaining}문제 남음\n미완성 답안은 채점에서 제외하고, 안 푼 문제의 정답은 공개하지 않습니다.`:'';
+  $('resumeActions').hidden=!partial;$('resultActions').hidden=partial;
+  $('retryWrong').disabled=wrong.length===0;
+  const emptyMessage=partial?(total?'푼 문제는 모두 맞았습니다.':'답을 완성한 뒤 다시 채점해 보세요.'):'전부 맞았습니다.';
+  $('wrongList').innerHTML=wrong.length?wrong.map(q=>{
+    const label=questionSourceLabel(q),title=state.difficulty==='easy'?`<small>${escapeHtml(q.source.title||'')}</small>`:'';
+    return `<div class="wrong ${q.kind==='word-order'?'word-wrong':''}"><div><strong>${escapeHtml(label)}</strong>${title}</div><div class="ans">내 답 ${escapeHtml(displayedUser(q))}<br>정답 ${escapeHtml(displayedAnswer(q))}</div></div>`;
+  }).join(''):`<div style="text-align:center;color:var(--good);font-weight:900">${emptyMessage}</div>`;
+  show('resultView');
+}
+function resumeQuiz(){
+  if(!state.resumeScroll||!state.session.length)return;
+  const position=state.resumeScroll;
+  show('quizView');
+  $('midGradeBtn').focus({preventScroll:true});
+  window.scrollTo({...position,behavior:'instant'});
+  state.resumeScroll=null;
+}
 document.querySelectorAll('.type-btn[data-type]').forEach(btn=>btn.onclick=()=>{state.type=btn.dataset.type;state.difficulty=null;state.selected.clear();if(state.type==='connective'){state.difficulty='standard';renderSetup();show('setupView');}else{renderDifficulty();show('difficultyView');}});
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.onclick=()=>{state.difficulty=btn.dataset.difficulty;renderSetup();show('setupView');});
 $('backType').onclick=()=>show('landingView');
 $('changeDifficulty').onclick=()=>{if(state.type==='connective')show('landingView');else{renderDifficulty();show('difficultyView');}};
 document.querySelectorAll('[data-order]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-order]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');state.sort=btn.dataset.order;syncSummary();});
 document.querySelectorAll('[data-blocks]').forEach(btn=>btn.onclick=()=>{state.orderBlocks=btn.dataset.blocks;document.querySelectorAll('[data-blocks]').forEach(x=>x.classList.toggle('active',x===btn));renderSetup();});
-$('startBtn').onclick=()=>{state.lastSelection=[...state.selected];state.session=buildSession(state.lastSelection);state.index=0;if(!state.session.length)return;show('quizView');renderQuiz();};
+$('startBtn').onclick=()=>{state.lastSelection=[...state.selected];state.session=buildSession(state.lastSelection);state.index=0;state.resumeScroll=null;if(!state.session.length)return;show('quizView');renderQuiz();};
+$('midGradeBtn').onclick=()=>grade({partial:true});$('resumeQuiz').onclick=resumeQuiz;
 $('prevBtn').onclick=()=>{if(state.index>0){state.index--;renderQuiz();}};$('mainAction').onclick=mainAction;$('quitBtn').onclick=()=>{renderSetup();show('setupView');};$('backSetup').onclick=()=>{renderSetup();show('setupView');};
-$('retrySame').onclick=()=>{state.session=buildSession(state.lastSelection);state.index=0;show('quizView');renderQuiz();};
-$('retryWrong').onclick=()=>{if(!state.lastWrong.length)return;state.session=buildSession(state.lastWrong);state.index=0;show('quizView');renderQuiz();};
+$('retrySame').onclick=()=>{state.session=buildSession(state.lastSelection);state.index=0;state.resumeScroll=null;show('quizView');renderQuiz();};
+$('retryWrong').onclick=()=>{if(!state.lastWrong.length)return;state.session=buildSession(state.lastWrong);state.index=0;state.resumeScroll=null;show('quizView');renderQuiz();};

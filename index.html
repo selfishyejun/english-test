@@ -66,15 +66,17 @@
     <div class="quiz-wrap">
       <div class="quiz-top"><button id="quitBtn" class="ghost">← 문제 선택</button><div class="progress"><span id="progressText">1 / 1</span><span class="bar"><i id="progressBar"></i></span></div></div>
       <div id="quizPaper" class="panel quiz-paper"></div>
-      <div class="quiz-nav"><button id="prevBtn" class="navbtn">이전</button><button id="mainAction" class="navbtn primary">다음</button></div>
+      <div class="quiz-nav"><button id="prevBtn" class="navbtn">이전</button><button id="midGradeBtn" class="navbtn mid-grade" type="button">중간 채점</button><button id="mainAction" class="navbtn primary">다음</button></div>
     </div>
   </section>
 
   <section id="resultView" class="view">
     <div class="panel result">
-      <h2>채점 결과</h2><div id="score" class="score">0%</div><div id="scoreSub" class="score-sub"></div>
-      <div class="stat-grid"><div><span>총 문제</span><strong id="statTotal">0</strong></div><div><span>정답</span><strong id="statCorrect">0</strong></div><div><span>오답</span><strong id="statWrong">0</strong></div></div>
-      <div class="result-actions"><button id="retrySame" class="navbtn">같은 선택 다시 풀기</button><button id="retryWrong" class="navbtn">오답만 다시 풀기</button><button id="backSetup" class="navbtn primary">문제 다시 선택</button></div>
+      <h2 id="resultTitle">채점 결과</h2><div id="score" class="score">0%</div><div id="scoreSub" class="score-sub"></div>
+      <p id="midGradeNote" class="result-note" hidden></p>
+      <div class="stat-grid"><div><span id="statTotalLabel">총 문제</span><strong id="statTotal">0</strong></div><div><span>정답</span><strong id="statCorrect">0</strong></div><div><span>오답</span><strong id="statWrong">0</strong></div></div>
+      <div id="resumeActions" class="result-actions" hidden><button id="resumeQuiz" class="navbtn primary" type="button">이어서 풀기</button></div>
+      <div id="resultActions" class="result-actions"><button id="retrySame" class="navbtn">같은 선택 다시 풀기</button><button id="retryWrong" class="navbtn">오답만 다시 풀기</button><button id="backSetup" class="navbtn primary">문제 다시 선택</button></div>
       <div id="wrongList" class="wrong-list"></div>
     </div>
   </section>
