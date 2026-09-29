@@ -41,7 +41,7 @@ function loadApp(realSources = false) {
     setTimeout() {}
   });
   if (realSources) {
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 7; i++) {
       vm.runInContext(fs.readFileSync(path.join(root, `data${i}.js`), 'utf8'), context);
     }
     vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), context);
@@ -223,6 +223,33 @@ test('all real source types retain generation, grading and question-specific ret
     assert.equal(app.questionKey(retry[0]), app.questionKey(questions[0]));
     if (kind === 'insertion') assert.ok(questions.every(q => q.gaps.every(g => g > 0)));
   }
+});
+
+test('all passages in the 2026 September source are available for both mock-exam modes', () => {
+  const app = loadApp(true);
+  const items = app.SOURCE_DATA.filter(item => item.sourceType === 'mock' && item.year === 2026);
+  assert.equal(items.length, 23);
+  assert.equal(items.reduce((sum, item) => sum + item.sentences.length, 0), 222);
+  assert.deepEqual(
+    Array.from(items, item => item.questionLabel),
+    ['18', '19', '20', '21', '22', '23', '24', '25', '26', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41~42', '43~45']
+  );
+  assert.ok(items.every(item => item.sentences.length >= 3));
+  assert.ok(items.every(item => item.sentences.every(sentence => sentence.trim())));
+
+  for (const [type, difficulty] of [['order', 'easy'], ['order', 'hard'], ['insertion', 'easy'], ['insertion', 'hard']]) {
+    app.state.type = type;
+    app.state.difficulty = difficulty;
+    const questions = app.buildSession(items.map(item => item.id));
+    assert.equal(questions.length, 23, `${type}/${difficulty}`);
+    assert.ok(questions.every(question => question.source.year === 2026));
+    if (type === 'insertion') assert.ok(questions.every(question => question.gaps.every(gap => gap > 0)));
+  }
+
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /<script src="data7\.js"><\/script>/);
+  assert.doesNotMatch(appSource, /9모 미시행/);
+  assert.match(appSource, /item\.questionLabel\?\?item\.questionNumber/);
 });
 
 test('the intermediate controls exist and remain hidden when required', () => {

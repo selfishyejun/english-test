@@ -64,7 +64,72 @@ function renderSetup(){
   $('orderedOption').textContent=textbookOnly?'본문 순서':'연도·번호 순';$('blockOption').style.display=isOrder?'block':'none';$('sumBlocksRow').style.display=isOrder?'flex':'none';
   document.querySelectorAll('[data-blocks]').forEach(btn=>btn.classList.toggle('active',btn.dataset.blocks===state.orderBlocks));renderMockGroups();renderLessonGroups();syncSummary();
 }
-function renderMockGroups(){const root=$('mockGroups');root.innerHTML='';[2022,2023,2024,2025,2026].forEach(year=>{const items=SOURCE_DATA.filter(x=>x.sourceType==='mock'&&x.year===year);const group=document.createElement('div');group.className='group'+(state.openMocks.has(year)?' open':'');const head=document.createElement('div');head.className='group-head';const left=document.createElement('div');left.className='group-left';const toggle=document.createElement('button');toggle.className='toggle';toggle.innerHTML=`<span class="arrow">▶</span><span>${year}</span><span class="status">${year===2026?'9모 미시행':items.length+'개 지문'}</span>`;toggle.onclick=()=>{if(state.openMocks.has(year))state.openMocks.delete(year);else state.openMocks.add(year);group.classList.toggle('open');};left.append(toggle);const all=document.createElement('label');all.className='all-check';const allCb=document.createElement('input');allCb.type='checkbox';allCb.disabled=!items.some(eligible);const eligibleItems=items.filter(eligible);allCb.checked=eligibleItems.length>0&&eligibleItems.every(x=>state.selected.has(x.id));allCb.indeterminate=!allCb.checked&&eligibleItems.some(x=>state.selected.has(x.id));allCb.onchange=()=>{eligibleItems.forEach(x=>allCb.checked?state.selected.add(x.id):state.selected.delete(x.id));state.openMocks.add(year);renderSetup();};all.append(allCb,document.createTextNode('전체'));head.append(left,all);group.append(head);const body=document.createElement('div');body.className='group-body';const grid=document.createElement('div');grid.className='q-grid';for(let q=21;q<=40;q++){const item=items.find(x=>x.questionNumber===q);const label=document.createElement('label');label.className='q-item';const cb=document.createElement('input');cb.type='checkbox';const ok=item&&eligible(item);cb.disabled=!ok;cb.checked=!!item&&state.selected.has(item.id);cb.onchange=()=>{if(cb.checked)state.selected.add(item.id);else state.selected.delete(item.id);state.openMocks.add(year);renderSetup();};const span=document.createElement('span');span.innerHTML=item?`${q}번${ok?'':`<span class="tiny">${'출제 가능한 문장 부족'}</span>`}`:`${q}번<span class="tiny">자료 없음</span>`;label.append(cb,span);grid.append(label);}body.append(grid);group.append(body);root.append(group);});}
+function mockQuestionLabel(item){return String(item.questionLabel??item.questionNumber);}
+function renderMockGroups(){
+  const root=$('mockGroups');
+  root.innerHTML='';
+  const years=[...new Set(SOURCE_DATA.filter(item=>item.sourceType==='mock').map(item=>item.year))].sort((a,b)=>a-b);
+  years.forEach(year=>{
+    const items=SOURCE_DATA.filter(item=>item.sourceType==='mock'&&item.year===year).sort(sourceSort);
+    const eligibleItems=items.filter(eligible);
+    const group=document.createElement('div');
+    group.className='group'+(state.openMocks.has(year)?' open':'');
+    const head=document.createElement('div');
+    head.className='group-head';
+    const left=document.createElement('div');
+    left.className='group-left';
+    const toggle=document.createElement('button');
+    toggle.className='toggle';
+    toggle.innerHTML=`<span class="arrow">▶</span><span>${year}</span><span class="status">${items.length}개 지문</span>`;
+    toggle.onclick=()=>{
+      if(state.openMocks.has(year))state.openMocks.delete(year);
+      else state.openMocks.add(year);
+      group.classList.toggle('open');
+    };
+    left.append(toggle);
+    const all=document.createElement('label');
+    all.className='all-check';
+    const allCb=document.createElement('input');
+    allCb.type='checkbox';
+    allCb.disabled=!eligibleItems.length;
+    allCb.checked=eligibleItems.length>0&&eligibleItems.every(item=>state.selected.has(item.id));
+    allCb.indeterminate=!allCb.checked&&eligibleItems.some(item=>state.selected.has(item.id));
+    allCb.onchange=()=>{
+      eligibleItems.forEach(item=>allCb.checked?state.selected.add(item.id):state.selected.delete(item.id));
+      state.openMocks.add(year);
+      renderSetup();
+    };
+    all.append(allCb,document.createTextNode('전체'));
+    head.append(left,all);
+    group.append(head);
+    const body=document.createElement('div');
+    body.className='group-body';
+    const grid=document.createElement('div');
+    grid.className='q-grid';
+    items.forEach(item=>{
+      const label=document.createElement('label');
+      label.className='q-item';
+      const cb=document.createElement('input');
+      const ok=eligible(item);
+      cb.type='checkbox';
+      cb.disabled=!ok;
+      cb.checked=state.selected.has(item.id);
+      cb.onchange=()=>{
+        if(cb.checked)state.selected.add(item.id);
+        else state.selected.delete(item.id);
+        state.openMocks.add(year);
+        renderSetup();
+      };
+      const span=document.createElement('span');
+      span.innerHTML=`${escapeHtml(mockQuestionLabel(item))}번${ok?'':'<span class="tiny">출제 가능한 문장 부족</span>'}`;
+      label.append(cb,span);
+      grid.append(label);
+    });
+    body.append(grid);
+    group.append(body);
+    root.append(group);
+  });
+}
 function renderLessonGroups(){const root=$('lessonGroups');root.innerHTML='';[1,2].forEach(lesson=>{const items=SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===lesson);const group=document.createElement('div');group.className='group'+(state.openLessons.has(lesson)?' open':'');const head=document.createElement('div');head.className='group-head';const left=document.createElement('div');left.className='group-left';const toggle=document.createElement('button');toggle.className='toggle';toggle.innerHTML=`<span class="arrow">▶</span><span>${lesson}과</span><span class="status">${items[0]?.lessonTitle||''}</span>`;toggle.onclick=()=>{if(state.openLessons.has(lesson))state.openLessons.delete(lesson);else state.openLessons.add(lesson);group.classList.toggle('open');};left.append(toggle);const elig=items.filter(eligible);const all=document.createElement('label');all.className='all-check';const cbAll=document.createElement('input');cbAll.type='checkbox';cbAll.checked=elig.length>0&&elig.every(x=>state.selected.has(x.id));cbAll.indeterminate=!cbAll.checked&&elig.some(x=>state.selected.has(x.id));cbAll.onchange=()=>{elig.forEach(x=>cbAll.checked?state.selected.add(x.id):state.selected.delete(x.id));state.openLessons.add(lesson);renderSetup();};all.append(cbAll,document.createTextNode(`${lesson}과 전체`));head.append(left,all);group.append(head);const body=document.createElement('div');body.className='group-body';const list=document.createElement('div');list.className='section-list';items.forEach(item=>{const ok=eligible(item),count=generatedQuestionCount(item);const row=document.createElement('label');row.className='section-row'+(ok?'':' disabled');const cb=document.createElement('input');cb.type='checkbox';cb.disabled=!ok;cb.checked=state.selected.has(item.id);cb.onchange=()=>{if(cb.checked)state.selected.add(item.id);else state.selected.delete(item.id);state.openLessons.add(lesson);renderSetup();};const txt=document.createElement('span');const amount=['context-vocab','connective'].includes(state.type)?`${count}문제`:`${item.sentences.length}문장`;const reason=state.type==='connective'?'연결어 2개 미만':state.type==='context-vocab'?'반복 핵심어 없음':'출제 가능한 문장 부족';txt.innerHTML=`<strong>${item.sectionTitle}</strong><small>${amount}${ok?'':` · ${reason}`}</small>`;row.append(cb,txt);list.append(row)});body.append(list);group.append(body);root.append(group);});}
 function syncSummary(){const valid=[...state.selected].map(id=>byId.get(id)).filter(Boolean).filter(eligible);for(const id of [...state.selected]){const item=byId.get(id);if(!item||!eligible(item))state.selected.delete(id)}const isWord=state.type==='word-order',generated=['word-order','context-vocab','connective'].includes(state.type),questionTotal=valid.reduce((sum,item)=>sum+generatedQuestionCount(item),0);$('sumCount').textContent=generated?`${valid.length}구간 · ${questionTotal}${isWord?'문장':'문제'}`:valid.length+'개';$('sumOrder').textContent=state.sort==='ordered'?(textbookOnlyType()?'본문 순서':'연도·번호 순'):'랜덤';$('sumBlocks').textContent=state.orderBlocks==='auto'?'자동 (가능한 범위)':state.orderBlocks+'개 우선';$('startBtn').disabled=valid.length===0;$('startNote').textContent=valid.length?(generated?`${questionTotal}${isWord?'문장':'문제'}을 ${state.sort==='ordered'?'본문 순서대로':'랜덤으로'} 출제합니다.`:`${valid.length}문제를 ${state.sort==='ordered'?'순서대로':'랜덤으로'} 출제합니다.`):'문제를 하나 이상 선택하세요.';}
 const DEPENDENT_START=/^(?:Then|So|However|Therefore|Thus|Yet|And|But|Otherwise|Indeed|Moreover|Furthermore|Instead|This|That|These|Those|Such|It|They|He|She|The former|The latter|In other words|For example|For instance|On the other hand|As a result)\b/i;
