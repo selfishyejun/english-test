@@ -41,9 +41,6 @@ function loadApp(realSources = false) {
     setTimeout() {}
   });
   if (realSources) {
-    for (let i = 1; i <= 7; i++) {
-      vm.runInContext(fs.readFileSync(path.join(root, `data${i}.js`), 'utf8'), context);
-    }
     vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), context);
   } else {
     vm.runInContext('const SOURCE_DATA = [];', context);
@@ -225,30 +222,55 @@ test('all real source types retain generation, grading and question-specific ret
   }
 });
 
-test('all passages in the 2026 September source are available for both mock-exam modes', () => {
+test('only the replacement mock exams and Lessons 3–4 are available in every supported mode', () => {
   const app = loadApp(true);
-  const items = app.SOURCE_DATA.filter(item => item.sourceType === 'mock' && item.year === 2026);
-  assert.equal(items.length, 23);
-  assert.equal(items.reduce((sum, item) => sum + item.sentences.length, 0), 222);
+  const mocks = app.SOURCE_DATA.filter(item => item.sourceType === 'mock');
+  const lessons = app.SOURCE_DATA.filter(item => item.sourceType === 'textbook');
+  const expectedNumbers = [21, 22, 23, 24, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40];
+  const expectedExams = [[2022, 11], [2023, 11], [2024, 10], [2025, 10]];
+
+  assert.equal(app.SOURCE_DATA.length, 74);
+  assert.equal(mocks.length, 64);
+  assert.equal(lessons.length, 10);
+  assert.equal(mocks.reduce((sum, item) => sum + item.sentences.length, 0), 484);
+  assert.equal(lessons.reduce((sum, item) => sum + item.sentences.length, 0), 85);
+  assert.equal(app.SOURCE_DATA.reduce((sum, item) => sum + item.sentences.length, 0), 569);
+  assert.deepEqual(Array.from(new Set(lessons.map(item => item.lesson))), [3, 4]);
+  assert.equal(lessons.filter(item => item.lesson === 3).length, 4);
+  assert.equal(lessons.filter(item => item.lesson === 4).length, 6);
+
+  for (const [year, month] of expectedExams) {
+    const items = mocks.filter(item => item.year === year && item.month === month);
+    assert.equal(items.length, 16, `${year}-${month}`);
+    assert.deepEqual(Array.from(items, item => item.questionNumber), expectedNumbers);
+  }
   assert.deepEqual(
-    Array.from(items, item => item.questionLabel),
-    ['18', '19', '20', '21', '22', '23', '24', '25', '26', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41~42', '43~45']
+    Array.from(new Set(mocks.map(item => `${item.year}-${item.month}`))),
+    ['2022-11', '2023-11', '2024-10', '2025-10']
   );
-  assert.ok(items.every(item => item.sentences.length >= 3));
-  assert.ok(items.every(item => item.sentences.every(sentence => sentence.trim())));
+  assert.ok(app.SOURCE_DATA.every(item => item.sentences.length >= 1));
+  assert.ok(app.SOURCE_DATA.every(item => item.sentences.every(sentence => sentence.trim())));
 
   for (const [type, difficulty] of [['order', 'easy'], ['order', 'hard'], ['insertion', 'easy'], ['insertion', 'hard']]) {
     app.state.type = type;
     app.state.difficulty = difficulty;
-    const questions = app.buildSession(items.map(item => item.id));
-    assert.equal(questions.length, 23, `${type}/${difficulty}`);
-    assert.ok(questions.every(question => question.source.year === 2026));
+    const questions = app.buildSession(app.SOURCE_DATA.map(item => item.id));
+    assert.equal(questions.length, 74, `${type}/${difficulty}`);
     if (type === 'insertion') assert.ok(questions.every(question => question.gaps.every(gap => gap > 0)));
   }
 
+  for (const difficulty of ['easy', 'hard']) {
+    app.state.type = 'word-order';
+    app.state.difficulty = difficulty;
+    const questions = app.buildSession(lessons.map(item => item.id));
+    assert.equal(questions.length, 85, `word-order/${difficulty}`);
+  }
+
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(html, /<script src="data7\.js"><\/script>/);
-  assert.doesNotMatch(appSource, /9모 미시행/);
+  assert.match(html, /3·4과 본문/);
+  assert.doesNotMatch(html, /data[1-7]\.js|1·2과/);
+  assert.doesNotMatch(appSource, /\[1,2\]|1과·2과/);
+  assert.match(appSource, /\$\{year\}년 \$\{month\}월/);
   assert.match(appSource, /item\.questionLabel\?\?item\.questionNumber/);
 });
 

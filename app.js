@@ -13,7 +13,7 @@ function toggleOrderPick(q,label){const current=pickedOrder(q).split('');const i
 function touchOrderSlots(value,count){const order=normalizedOrder(value);return Array.from({length:count},(_,i)=>`<span class="touch-slot ${order[i]?'filled':''}"><i>${i+1}</i><b>${order[i]||'?'}</b></span>`).join('');}
 function syncOrderPickUI(q){const order=pickedOrder(q);document.querySelectorAll('.order-part.touch-enabled').forEach(part=>{const label=part.dataset.label,rank=order.indexOf(label)+1;part.classList.toggle('selected',rank>0);part.setAttribute('aria-pressed',String(rank>0));part.setAttribute('aria-label',`${label} 블록${rank?` ${rank}번째 선택`:''}`);const picker=part.querySelector('.order-pick');picker?.classList.toggle('selected',rank>0);const badge=part.querySelector('.order-rank');if(badge)badge.textContent=rank||'';});const sequence=$('touchOrderSequence');if(sequence)sequence.innerHTML=touchOrderSlots(order,q.blocks.length);const clear=$('clearOrder');if(clear)clear.disabled=!order;}
 function touchOrderMessage(q){const order=pickedOrder(q);if(!order)return `위의 (A)~(${LETTERS[q.blocks.length-1]})를 답 순서대로 누르거나 아래 선택지를 고르세요.`;if(order.length<q.blocks.length)return `${q.blocks.length-order.length}개를 더 선택하세요.`;if(q.options&&!q.options.includes(order))return '아래 선택지에 없는 순서입니다. 문자를 다시 눌러 수정하세요.';return '선택한 순서가 아래 선택지에 반영되었습니다.';}
-function sourceSort(a,b){if(a.sourceType!==b.sourceType)return a.sourceType==='mock'?-1:1;if(a.sourceType==='mock')return a.year-b.year||a.questionNumber-b.questionNumber;return a.lesson-b.lesson||(SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===a.lesson).findIndex(x=>x.id===a.id)-SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===b.lesson).findIndex(x=>x.id===b.id));}
+function sourceSort(a,b){if(a.sourceType!==b.sourceType)return a.sourceType==='mock'?-1:1;if(a.sourceType==='mock')return a.year-b.year||a.month-b.month||a.questionNumber-b.questionNumber;return a.lesson-b.lesson||(SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===a.lesson).findIndex(x=>x.id===a.id)-SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===b.lesson).findIndex(x=>x.id===b.id));}
 const CONTEXT_STOP_WORDS=new Set(`the a an and or but if then than that this these those it its they them their he him his she her hers we us our ours you your yours i me my mine is am are was were be been being do does did have has had having can could may might must will would shall should to of in on at for from with by as into onto about over under after before during through between among up down out off not no nor so too very more most much many few some any all each every both either neither other another same such own just only even also still already yet ever never here there when where why how what which who whom whose because although though while since until unless whether against within without around across behind beyond near per via`.split(/\s+/));
 const CONNECTOR_TERMS=['on the other hand','as a result','for example','for instance','in addition','in contrast','in fact','rather than','instead of','even though','however','therefore','thus','moreover','furthermore','nevertheless','instead','otherwise','meanwhile','finally','eventually','consequently','accordingly','although','though','whereas','while','because','since','but','so','yet','then','also','still'];
 function normalizeVocab(value){return String(value||'').trim().toLowerCase().replace(/’/g,"'");}
@@ -60,7 +60,7 @@ function renderSetup(){
   $('changeDifficulty').textContent=isConnective?'← 유형 선택':'← 난이도 선택';
   $('sumType').textContent=typeName(state.type,true);$('sumDifficulty').textContent=difficultyName;$('sumDifficultyRow').style.display=isConnective?'none':'flex';
   $('mockSourceSection').style.display=textbookOnly?'none':'block';$('lessonSourceSection').querySelector('.section-title').style.marginTop=textbookOnly?'0':'24px';
-  $('lessonNote').textContent=isWord?'선택한 구간의 각 문장이 한 문제씩 출제됩니다.':isVocab?'두 번 이상 나온 의미 있는 단어가 각각 한 문제씩 출제됩니다.':isConnective?'본문에 연결어가 두 개 이상 있는 구간만 선택할 수 있습니다.':'1과·2과 전체 또는 본문 안의 자연스러운 구간별로 선택합니다.';
+  $('lessonNote').textContent=isWord?'선택한 구간의 각 문장이 한 문제씩 출제됩니다.':isVocab?'두 번 이상 나온 의미 있는 단어가 각각 한 문제씩 출제됩니다.':isConnective?'본문에 연결어가 두 개 이상 있는 구간만 선택할 수 있습니다.':'3과·4과 전체 또는 본문 안의 자연스러운 구간별로 선택합니다.';
   $('orderedOption').textContent=textbookOnly?'본문 순서':'연도·번호 순';$('blockOption').style.display=isOrder?'block':'none';$('sumBlocksRow').style.display=isOrder?'flex':'none';
   document.querySelectorAll('[data-blocks]').forEach(btn=>btn.classList.toggle('active',btn.dataset.blocks===state.orderBlocks));renderMockGroups();renderLessonGroups();syncSummary();
 }
@@ -68,22 +68,23 @@ function mockQuestionLabel(item){return String(item.questionLabel??item.question
 function renderMockGroups(){
   const root=$('mockGroups');
   root.innerHTML='';
-  const years=[...new Set(SOURCE_DATA.filter(item=>item.sourceType==='mock').map(item=>item.year))].sort((a,b)=>a-b);
-  years.forEach(year=>{
-    const items=SOURCE_DATA.filter(item=>item.sourceType==='mock'&&item.year===year).sort(sourceSort);
+  const exams=[...new Map(SOURCE_DATA.filter(item=>item.sourceType==='mock').map(item=>[`${item.year}-${item.month}`,{year:item.year,month:item.month}])).values()].sort((a,b)=>a.year-b.year||a.month-b.month);
+  exams.forEach(({year,month})=>{
+    const examKey=`${year}-${month}`;
+    const items=SOURCE_DATA.filter(item=>item.sourceType==='mock'&&item.year===year&&item.month===month).sort(sourceSort);
     const eligibleItems=items.filter(eligible);
     const group=document.createElement('div');
-    group.className='group'+(state.openMocks.has(year)?' open':'');
+    group.className='group'+(state.openMocks.has(examKey)?' open':'');
     const head=document.createElement('div');
     head.className='group-head';
     const left=document.createElement('div');
     left.className='group-left';
     const toggle=document.createElement('button');
     toggle.className='toggle';
-    toggle.innerHTML=`<span class="arrow">▶</span><span>${year}</span><span class="status">${items.length}개 지문</span>`;
+    toggle.innerHTML=`<span class="arrow">▶</span><span>${year}년 ${month}월</span><span class="status">${items.length}개 지문</span>`;
     toggle.onclick=()=>{
-      if(state.openMocks.has(year))state.openMocks.delete(year);
-      else state.openMocks.add(year);
+      if(state.openMocks.has(examKey))state.openMocks.delete(examKey);
+      else state.openMocks.add(examKey);
       group.classList.toggle('open');
     };
     left.append(toggle);
@@ -96,7 +97,7 @@ function renderMockGroups(){
     allCb.indeterminate=!allCb.checked&&eligibleItems.some(item=>state.selected.has(item.id));
     allCb.onchange=()=>{
       eligibleItems.forEach(item=>allCb.checked?state.selected.add(item.id):state.selected.delete(item.id));
-      state.openMocks.add(year);
+      state.openMocks.add(examKey);
       renderSetup();
     };
     all.append(allCb,document.createTextNode('전체'));
@@ -117,7 +118,7 @@ function renderMockGroups(){
       cb.onchange=()=>{
         if(cb.checked)state.selected.add(item.id);
         else state.selected.delete(item.id);
-        state.openMocks.add(year);
+        state.openMocks.add(examKey);
         renderSetup();
       };
       const span=document.createElement('span');
@@ -130,7 +131,7 @@ function renderMockGroups(){
     root.append(group);
   });
 }
-function renderLessonGroups(){const root=$('lessonGroups');root.innerHTML='';[1,2].forEach(lesson=>{const items=SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===lesson);const group=document.createElement('div');group.className='group'+(state.openLessons.has(lesson)?' open':'');const head=document.createElement('div');head.className='group-head';const left=document.createElement('div');left.className='group-left';const toggle=document.createElement('button');toggle.className='toggle';toggle.innerHTML=`<span class="arrow">▶</span><span>${lesson}과</span><span class="status">${items[0]?.lessonTitle||''}</span>`;toggle.onclick=()=>{if(state.openLessons.has(lesson))state.openLessons.delete(lesson);else state.openLessons.add(lesson);group.classList.toggle('open');};left.append(toggle);const elig=items.filter(eligible);const all=document.createElement('label');all.className='all-check';const cbAll=document.createElement('input');cbAll.type='checkbox';cbAll.checked=elig.length>0&&elig.every(x=>state.selected.has(x.id));cbAll.indeterminate=!cbAll.checked&&elig.some(x=>state.selected.has(x.id));cbAll.onchange=()=>{elig.forEach(x=>cbAll.checked?state.selected.add(x.id):state.selected.delete(x.id));state.openLessons.add(lesson);renderSetup();};all.append(cbAll,document.createTextNode(`${lesson}과 전체`));head.append(left,all);group.append(head);const body=document.createElement('div');body.className='group-body';const list=document.createElement('div');list.className='section-list';items.forEach(item=>{const ok=eligible(item),count=generatedQuestionCount(item);const row=document.createElement('label');row.className='section-row'+(ok?'':' disabled');const cb=document.createElement('input');cb.type='checkbox';cb.disabled=!ok;cb.checked=state.selected.has(item.id);cb.onchange=()=>{if(cb.checked)state.selected.add(item.id);else state.selected.delete(item.id);state.openLessons.add(lesson);renderSetup();};const txt=document.createElement('span');const amount=['context-vocab','connective'].includes(state.type)?`${count}문제`:`${item.sentences.length}문장`;const reason=state.type==='connective'?'연결어 2개 미만':state.type==='context-vocab'?'반복 핵심어 없음':'출제 가능한 문장 부족';txt.innerHTML=`<strong>${item.sectionTitle}</strong><small>${amount}${ok?'':` · ${reason}`}</small>`;row.append(cb,txt);list.append(row)});body.append(list);group.append(body);root.append(group);});}
+function renderLessonGroups(){const root=$('lessonGroups');root.innerHTML='';const lessons=[...new Set(SOURCE_DATA.filter(x=>x.sourceType==='textbook').map(x=>x.lesson))].sort((a,b)=>a-b);lessons.forEach(lesson=>{const items=SOURCE_DATA.filter(x=>x.sourceType==='textbook'&&x.lesson===lesson);const group=document.createElement('div');group.className='group'+(state.openLessons.has(lesson)?' open':'');const head=document.createElement('div');head.className='group-head';const left=document.createElement('div');left.className='group-left';const toggle=document.createElement('button');toggle.className='toggle';toggle.innerHTML=`<span class="arrow">▶</span><span>${lesson}과</span><span class="status">${items[0]?.lessonTitle||''}</span>`;toggle.onclick=()=>{if(state.openLessons.has(lesson))state.openLessons.delete(lesson);else state.openLessons.add(lesson);group.classList.toggle('open');};left.append(toggle);const elig=items.filter(eligible);const all=document.createElement('label');all.className='all-check';const cbAll=document.createElement('input');cbAll.type='checkbox';cbAll.disabled=!elig.length;cbAll.checked=elig.length>0&&elig.every(x=>state.selected.has(x.id));cbAll.indeterminate=!cbAll.checked&&elig.some(x=>state.selected.has(x.id));cbAll.onchange=()=>{elig.forEach(x=>cbAll.checked?state.selected.add(x.id):state.selected.delete(x.id));state.openLessons.add(lesson);renderSetup();};all.append(cbAll,document.createTextNode(`${lesson}과 전체`));head.append(left,all);group.append(head);const body=document.createElement('div');body.className='group-body';const list=document.createElement('div');list.className='section-list';items.forEach(item=>{const ok=eligible(item),count=generatedQuestionCount(item);const row=document.createElement('label');row.className='section-row'+(ok?'':' disabled');const cb=document.createElement('input');cb.type='checkbox';cb.disabled=!ok;cb.checked=state.selected.has(item.id);cb.onchange=()=>{if(cb.checked)state.selected.add(item.id);else state.selected.delete(item.id);state.openLessons.add(lesson);renderSetup();};const txt=document.createElement('span');const amount=['context-vocab','connective'].includes(state.type)?`${count}문제`:`${item.sentences.length}문장`;const reason=state.type==='connective'?'연결어 2개 미만':state.type==='context-vocab'?'반복 핵심어 없음':'출제 가능한 문장 부족';txt.innerHTML=`<strong>${item.sectionTitle}</strong><small>${amount}${ok?'':` · ${reason}`}</small>`;row.append(cb,txt);list.append(row)});body.append(list);group.append(body);root.append(group);});}
 function syncSummary(){const valid=[...state.selected].map(id=>byId.get(id)).filter(Boolean).filter(eligible);for(const id of [...state.selected]){const item=byId.get(id);if(!item||!eligible(item))state.selected.delete(id)}const isWord=state.type==='word-order',generated=['word-order','context-vocab','connective'].includes(state.type),questionTotal=valid.reduce((sum,item)=>sum+generatedQuestionCount(item),0);$('sumCount').textContent=generated?`${valid.length}구간 · ${questionTotal}${isWord?'문장':'문제'}`:valid.length+'개';$('sumOrder').textContent=state.sort==='ordered'?(textbookOnlyType()?'본문 순서':'연도·번호 순'):'랜덤';$('sumBlocks').textContent=state.orderBlocks==='auto'?'자동 (가능한 범위)':state.orderBlocks+'개 우선';$('startBtn').disabled=valid.length===0;$('startNote').textContent=valid.length?(generated?`${questionTotal}${isWord?'문장':'문제'}을 ${state.sort==='ordered'?'본문 순서대로':'랜덤으로'} 출제합니다.`:`${valid.length}문제를 ${state.sort==='ordered'?'순서대로':'랜덤으로'} 출제합니다.`):'문제를 하나 이상 선택하세요.';}
 const DEPENDENT_START=/^(?:Then|So|However|Therefore|Thus|Yet|And|But|Otherwise|Indeed|Moreover|Furthermore|Instead|This|That|These|Those|Such|It|They|He|She|The former|The latter|In other words|For example|For instance|On the other hand|As a result)\b/i;
 const SCHOOL_CUE_START=/^(?:Then|Now|Later|Meanwhile|Soon|Eventually|Finally|Next|After|Before|Previously|Once|When|While|Just before|At (?:first|last|that time|the time|night|noon|dawn)|On (?:the next|that|this)|In (?:the beginning|the end|the early|those days|the meantime)|All through|However|Therefore|Thus|Yet|But|Moreover|Furthermore|Instead|Indeed|For example|For instance|For a start|In contrast|On the other hand|As a result|This|That|These|Those|Such|It|They|He|She|The former|The latter|Other)\b/i;
