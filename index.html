@@ -3,23 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>고1 2학기 중간 순서 삽입</title>
+<title>고1 영어 훈련실</title>
+<meta name="theme-color" content="#173f8f">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="shell">
-  <div class="brand">ENGLISH PRACTICE</div>
+  <div class="brand"><span class="brand-badge">E!</span><span>YJ ENGLISH</span><b>TRAINING LAB</b></div>
 
   <section id="landingView" class="view active landing">
     <div class="landing-inner">
-      <h1>고1 2학기 중간 순서 삽입</h1>
-      <p>풀고 싶은 문제 유형을 먼저 선택하세요.</p>
+      <div class="hero-panel">
+        <div class="hero-copy-block">
+          <div class="hero-kicker"><span>HIGH SCHOOL 1</span> 2학기 중간 대비</div>
+          <h1>영어 훈련,<br><em>게임처럼.</em></h1>
+          <p class="hero-copy">모의고사와 교과서 본문으로 필요한 유형만 골라 연습하세요.</p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-top"><span>ROUND 01</span><b>ENGLISH</b></div>
+          <div class="letter-stack"><i>A</i><i>B</i><i>C</i></div>
+          <div class="visual-score"><span>문장 흐름 훈련</span><b>READY!</b></div>
+        </div>
+      </div>
+      <div class="source-stats" aria-label="수록 자료">
+        <span><b>64</b> 모의고사 지문</span>
+        <span><b>3·4</b> 교과서 본문</span>
+        <span><b>569</b> 영어 문장</span>
+      </div>
+      <div class="mode-heading"><span>CHOOSE A MODE</span><small>오늘 훈련할 유형을 선택하세요</small></div>
       <div class="type-grid">
-        <button class="type-btn" data-type="order"><span class="type-mark">ABC</span><strong>순서 문제</strong><span>주어진 글 뒤의 (A)~(E) 의미 덩어리를 올바른 순서로 배열합니다.</span></button>
-        <button class="type-btn" data-type="insertion"><span class="type-mark">①</span><strong>문장 삽입</strong><span>주어진 문장이 들어갈 가장 적절한 표시 위치를 선택합니다.</span></button>
-        <button class="type-btn" data-type="word-order"><span class="type-mark">Aa</span><strong>본문 단어 배열</strong><span>3·4과 본문의 단어·어구 카드를 눌러 원래 문장을 완성합니다.</span></button>
-        <button class="type-btn" data-type="context-vocab"><span class="type-mark">___</span><strong>문맥 어휘</strong><span>본문에서 두 번 이상 나온 핵심 단어를 문맥에 맞게 완성합니다.</span></button>
-        <button class="type-btn" data-type="connective"><span class="type-mark">A·B</span><strong>연결어 조합</strong><span>본문의 두 연결어를 빈칸으로 보고 올바른 조합을 고릅니다.</span></button>
+        <button class="type-btn" data-type="order"><span class="mode-no">MODE 01</span><span class="type-mark">ABC</span><strong>순서 문제</strong><span class="type-desc">의미 덩어리를 올바른 흐름으로 배열하기</span><span class="type-go">PLAY <b>→</b></span></button>
+        <button class="type-btn" data-type="insertion"><span class="mode-no">MODE 02</span><span class="type-mark">①</span><strong>문장 삽입</strong><span class="type-desc">문장이 들어갈 가장 적절한 위치 찾기</span><span class="type-go">PLAY <b>→</b></span></button>
+        <button class="type-btn" data-type="word-order"><span class="mode-no">MODE 03</span><span class="type-mark">Aa</span><strong>본문 단어 배열</strong><span class="type-desc">3·4과 문장을 단어·어구로 다시 만들기</span><span class="type-go">PLAY <b>→</b></span></button>
+        <button class="type-btn" data-type="context-vocab"><span class="mode-no">MODE 04</span><span class="type-mark">___</span><strong>문맥 어휘</strong><span class="type-desc">반복 핵심어를 문맥에 맞게 완성하기</span><span class="type-go">PLAY <b>→</b></span></button>
+        <button class="type-btn" data-type="connective"><span class="mode-no">MODE 05</span><span class="type-mark">A·B</span><strong>연결어 조합</strong><span class="type-desc">두 연결어의 올바른 조합 고르기</span><span class="type-go">PLAY <b>→</b></span></button>
       </div>
     </div>
   </section>

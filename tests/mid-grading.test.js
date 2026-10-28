@@ -267,7 +267,8 @@ test('only the replacement mock exams and Lessons 3–4 are available in every s
   }
 
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(html, /3·4과 본문/);
+  assert.match(html, /3·4과/);
+  assert.match(html, /교과서 본문/);
   assert.doesNotMatch(html, /data[1-7]\.js|1·2과/);
   assert.doesNotMatch(appSource, /\[1,2\]|1과·2과/);
   assert.match(appSource, /\$\{year\}년 \$\{month\}월/);
