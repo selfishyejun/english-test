@@ -45,7 +45,7 @@ function loadApp(realSources = false) {
   } else {
     vm.runInContext('const SOURCE_DATA = [];', context);
   }
-  vm.runInContext(appSource + '\nglobalThis.app = {state, hasCompleteAnswer, answerMatches, gradingSummary, grade, resumeQuiz, mainAction, buildSession, questionKey, eligible, SOURCE_DATA};', context);
+  vm.runInContext(appSource + '\nglobalThis.app = {state, hasCompleteAnswer, answerMatches, gradingSummary, grade, resumeQuiz, mainAction, buildSession, questionKey, eligible, setTheme, SOURCE_DATA};', context);
   return {...context.app, element, window};
 }
 
@@ -283,4 +283,21 @@ test('the intermediate controls exist and remain hidden when required', () => {
   }
   assert.match(html, /id="resumeActions"[^>]*hidden/);
   assert.match(css, /\[hidden\]\s*\{\s*display:\s*none\s*!important/);
+});
+
+test('the Classcard-inspired skin can be switched without replacing the game skin', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.equal((html.match(/data-theme-style="game"/g) || []).length, 1);
+  assert.equal((html.match(/data-theme-style="classcard"/g) || []).length, 1);
+  assert.match(html, /class="classcard-set-head"/);
+  assert.match(html, /학습 도구 5개/);
+  assert.match(css, /body\.theme-classcard #landingView \.type-grid/);
+  assert.match(css, /body\.theme-classcard \.classcard-set-head/);
+
+  const app = loadApp();
+  assert.equal(app.setTheme('classcard', false), 'classcard');
+  assert.equal(app.element('body').classList.contains('theme-classcard'), true);
+  assert.equal(app.setTheme('game', false), 'game');
+  assert.equal(app.element('body').classList.contains('theme-classcard'), false);
 });

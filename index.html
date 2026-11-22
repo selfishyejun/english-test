@@ -9,10 +9,27 @@
 </head>
 <body>
 <div class="shell">
-  <div class="brand"><span class="brand-badge">E!</span><span>YJ ENGLISH</span><b>TRAINING LAB</b></div>
+  <header class="brand">
+    <div class="brand-main"><span class="brand-badge">E!</span><span>YJ ENGLISH</span><b>TRAINING LAB</b></div>
+    <div class="theme-switch" role="group" aria-label="화면 스타일">
+      <span class="theme-label">화면 스타일</span>
+      <button type="button" class="active" data-theme-style="game" aria-pressed="true">게임형</button>
+      <button type="button" data-theme-style="classcard" aria-pressed="false">클래스카드형</button>
+    </div>
+  </header>
 
   <section id="landingView" class="view active landing">
     <div class="landing-inner">
+      <div class="classcard-set-head">
+        <div class="classcard-cover" aria-hidden="true"><span>고1</span><strong>ENGLISH</strong><i>2학기</i></div>
+        <div class="classcard-set-copy">
+          <span class="classcard-eyebrow">나의 영어 학습 세트</span>
+          <h1>모의고사 · 교과서 실전 훈련</h1>
+          <p>2022~2025 모의고사와 교과서 3·4과를 유형별로 연습하세요.</p>
+          <div class="classcard-meta"><span>64개 지문</span><span>569개 문장</span><span>학습 도구 5개</span></div>
+        </div>
+        <div class="classcard-progress"><span>학습 준비</span><strong>READY</strong><i><b></b></i><small>원하는 유형부터 시작</small></div>
+      </div>
       <div class="hero-panel">
         <div class="hero-copy-block">
           <div class="hero-kicker"><span>HIGH SCHOOL 1</span> 2학기 중간 대비</div>
@@ -30,13 +47,13 @@
         <span><b>3·4</b> 교과서 본문</span>
         <span><b>569</b> 영어 문장</span>
       </div>
-      <div class="mode-heading"><span>CHOOSE A MODE</span><small>오늘 훈련할 유형을 선택하세요</small></div>
+      <div class="mode-heading"><span class="game-heading">CHOOSE A MODE</span><span class="classcard-heading">학습 도구 <b>5</b></span><small>오늘 훈련할 유형을 선택하세요</small></div>
       <div class="type-grid">
-        <button class="type-btn" data-type="order"><span class="mode-no">MODE 01</span><span class="type-mark">ABC</span><strong>순서 문제</strong><span class="type-desc">의미 덩어리를 올바른 흐름으로 배열하기</span><span class="type-go">PLAY <b>→</b></span></button>
-        <button class="type-btn" data-type="insertion"><span class="mode-no">MODE 02</span><span class="type-mark">①</span><strong>문장 삽입</strong><span class="type-desc">문장이 들어갈 가장 적절한 위치 찾기</span><span class="type-go">PLAY <b>→</b></span></button>
-        <button class="type-btn" data-type="word-order"><span class="mode-no">MODE 03</span><span class="type-mark">Aa</span><strong>본문 단어 배열</strong><span class="type-desc">3·4과 문장을 단어·어구로 다시 만들기</span><span class="type-go">PLAY <b>→</b></span></button>
-        <button class="type-btn" data-type="context-vocab"><span class="mode-no">MODE 04</span><span class="type-mark">___</span><strong>문맥 어휘</strong><span class="type-desc">반복 핵심어를 문맥에 맞게 완성하기</span><span class="type-go">PLAY <b>→</b></span></button>
-        <button class="type-btn" data-type="connective"><span class="mode-no">MODE 05</span><span class="type-mark">A·B</span><strong>연결어 조합</strong><span class="type-desc">두 연결어의 올바른 조합 고르기</span><span class="type-go">PLAY <b>→</b></span></button>
+        <button class="type-btn" data-type="order"><span class="mode-no">MODE 01</span><span class="type-mark">ABC</span><strong>순서 문제</strong><span class="type-desc">의미 덩어리를 올바른 흐름으로 배열하기</span><span class="type-go"><span class="game-go">PLAY</span><span class="classcard-go">학습하기</span><b>GO</b></span></button>
+        <button class="type-btn" data-type="insertion"><span class="mode-no">MODE 02</span><span class="type-mark">①</span><strong>문장 삽입</strong><span class="type-desc">문장이 들어갈 가장 적절한 위치 찾기</span><span class="type-go"><span class="game-go">PLAY</span><span class="classcard-go">학습하기</span><b>GO</b></span></button>
+        <button class="type-btn" data-type="word-order"><span class="mode-no">MODE 03</span><span class="type-mark">Aa</span><strong>본문 단어 배열</strong><span class="type-desc">3·4과 문장을 단어·어구로 다시 만들기</span><span class="type-go"><span class="game-go">PLAY</span><span class="classcard-go">학습하기</span><b>GO</b></span></button>
+        <button class="type-btn" data-type="context-vocab"><span class="mode-no">MODE 04</span><span class="type-mark">___</span><strong>문맥 어휘</strong><span class="type-desc">반복 핵심어를 문맥에 맞게 완성하기</span><span class="type-go"><span class="game-go">PLAY</span><span class="classcard-go">학습하기</span><b>GO</b></span></button>
+        <button class="type-btn" data-type="connective"><span class="mode-no">MODE 05</span><span class="type-mark">A·B</span><strong>연결어 조합</strong><span class="type-desc">두 연결어의 올바른 조합 고르기</span><span class="type-go"><span class="game-go">PLAY</span><span class="classcard-go">학습하기</span><b>GO</b></span></button>
       </div>
     </div>
   </section>

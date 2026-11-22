@@ -3,6 +3,22 @@ const state={type:null,difficulty:null,selected:new Set(),sort:'ordered',orderBl
 const byId=new Map(SOURCE_DATA.map(x=>[x.id,x]));
 const views=['landingView','difficultyView','setupView','quizView','resultView'];
 const $=id=>document.getElementById(id);
+const THEME_STORAGE_KEY='english-practice-theme';
+function themeStorage(){try{return window.localStorage||null}catch{return null}}
+function setTheme(theme,persist=true){
+  const value=theme==='classcard'?'classcard':'game';
+  document.body.classList.toggle('theme-classcard',value==='classcard');
+  document.querySelectorAll('[data-theme-style]').forEach(btn=>{
+    const active=btn.dataset.themeStyle===value;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+  const themeMeta=document.querySelector?.('meta[name="theme-color"]');
+  themeMeta?.setAttribute('content',value==='classcard'?'#253c67':'#173f8f');
+  if(persist){try{themeStorage()?.setItem(THEME_STORAGE_KEY,value)}catch{}}
+  return value;
+}
+function savedTheme(){try{return themeStorage()?.getItem(THEME_STORAGE_KEY)||'game'}catch{return 'game'}}
 function show(id){views.forEach(v=>$(v).classList.toggle('active',v===id));document.body.classList.toggle('quiz-mode',id==='quizView');window.scrollTo({top:0,behavior:'instant'});}
 function wordCount(s){return (s.match(/[A-Za-zÀ-ÿ0-9]+(?:['’\-][A-Za-zÀ-ÿ0-9]+)*/g)||[]).length;}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -453,3 +469,5 @@ $('midGradeBtn').onclick=()=>grade({partial:true});$('resumeQuiz').onclick=resum
 $('prevBtn').onclick=()=>{if(state.index>0){state.index--;renderQuiz();}};$('mainAction').onclick=mainAction;$('quitBtn').onclick=()=>{renderSetup();show('setupView');};$('backSetup').onclick=()=>{renderSetup();show('setupView');};
 $('retrySame').onclick=()=>{state.session=buildSession(state.lastSelection);state.index=0;state.resumeScroll=null;show('quizView');renderQuiz();};
 $('retryWrong').onclick=()=>{if(!state.lastWrong.length)return;state.session=buildSession(state.lastWrong);state.index=0;state.resumeScroll=null;show('quizView');renderQuiz();};
+document.querySelectorAll('[data-theme-style]').forEach(btn=>btn.onclick=()=>setTheme(btn.dataset.themeStyle));
+setTheme(savedTheme(),false);
