@@ -755,3 +755,27 @@ body.theme-classcard.quiz-mode .navbtn{box-shadow:none}
   body.theme-classcard .stat-grid div+div{border-color:#daddE4}
   body.theme-classcard.quiz-mode .shell{width:100%;padding:0}
 }
+
+/* Keep the controls within thumb reach without shrinking the passage. */
+.mobile-quiz-tools{display:none}
+@media(max-width: 650px){
+  body.quiz-mode .quiz-wrap{padding-bottom:calc(130px + env(safe-area-inset-bottom, 0px))}
+  body.quiz-mode .quiz-dock{
+    position:fixed;inset:auto 0 0;z-index:11;background:#fff;
+    padding:5px 15px calc(9px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--line);
+  }
+  body.quiz-mode .quiz-nav{margin:0;padding:0;border:0}
+  body.quiz-mode .quiz-dock .navbtn{min-height:44px;padding:7px 4px;box-shadow:none}
+  .mobile-quiz-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+  #mobileAnswerStatus{font-size:14px;font-weight:800;overflow-wrap:anywhere}
+  #mobileAnswerStatus.needs-answer{color:var(--bad)}
+  body.quiz-mode #mobileAnswerJump{padding-inline:10px}
+  body.quiz-mode .quiz-paper{padding-top:16px}
+  .quiz-paper .answer-zone,.quiz-paper #answerChoices,.quiz-paper #contextInput{scroll-margin-top:58px}
+  .quiz-paper .meta,.quiz-paper .question-prompt{margin-bottom:12px}
+  .quiz-paper .lead,.quiz-paper .insert-sentence{margin-bottom:12px}
+  .quiz-paper .order-part{padding-bottom:8px}
+  .quiz-paper .order-part+.order-part{padding-top:8px}
+  .quiz-paper .order-part:last-child{padding-bottom:0}
+}

@@ -45,7 +45,7 @@ function loadApp(realSources = false) {
   } else {
     vm.runInContext('const SOURCE_DATA = [];', context);
   }
-  vm.runInContext(appSource + '\nglobalThis.app = {state, hasCompleteAnswer, answerMatches, gradingSummary, grade, resumeQuiz, mainAction, buildSession, questionKey, eligible, setTheme, SOURCE_DATA};', context);
+  vm.runInContext(appSource + '\nglobalThis.app = {state, hasCompleteAnswer, answerMatches, gradingSummary, grade, resumeQuiz, mainAction, buildSession, questionKey, eligible, setTheme, syncMobileQuiz, toggleOrderPick, SOURCE_DATA};', context);
   return {...context.app, element, window};
 }
 
@@ -185,6 +185,37 @@ test('empty partial check reveals no answers and is not displayed as 0% or 100%'
   assert.doesNotMatch(app.element('wrongList').innerHTML, /UNREVEALED_SECRET|secret-source/);
   app.element('resumeQuiz').onclick();
   assert.equal(app.element('quizView').classList.contains('active'), true);
+});
+
+test('mobile answer status updates without moving the passage and the shortcut returns to the reading position', () => {
+  const app = loadApp();
+  const q = question('connective', 'standard', 'first');
+  app.state.session = [q];
+  const answers = app.element('answerChoices');
+  answers.scrollIntoView = () => app.window.scrollTo({top: 820});
+  app.window.scrollTo({top: 360});
+  app.syncMobileQuiz(q);
+  const jump = app.element('mobileAnswerJump');
+  assert.equal(jump.hidden, false);
+  assert.equal(jump.textContent, '보기로');
+  jump.onclick();
+  assert.equal(app.window.scrollY, 820);
+  q.user = q.options[1].key;
+  app.syncMobileQuiz(q);
+  assert.equal(app.element('mobileAnswerStatus').textContent, '선택: 2번');
+  assert.equal(app.window.scrollY, 820);
+  assert.equal(jump.textContent, '지문으로');
+  jump.onclick();
+  assert.equal(app.window.scrollY, 360);
+
+  const order = question('order', 'hard', 'order');
+  app.syncMobileQuiz(order);
+  app.toggleOrderPick(order, 'B');
+  app.toggleOrderPick(order, 'D');
+  app.syncMobileQuiz(order);
+  assert.equal(jump.hidden, true);
+  assert.equal(app.element('mobileAnswerStatus').textContent, '선택: B · D');
+  assert.equal(app.window.scrollY, 360);
 });
 
 test('incomplete order selections and duplicate word cards are not submitted answers', () => {
