@@ -530,10 +530,10 @@ body.theme-classcard{
   --muted:#737b8c;
   --line:#dfe3e9;
   --soft:#f7f8fa;
-  --accent:#f57c20;
-  --accent2:#fff1e6;
+  --accent:#20a464;
+  --accent2:#eaf8f1;
   --navy:#253c67;
-  --yellow:#f57c20;
+  --yellow:#20a464;
   background:var(--bg);
   color:var(--ink);
 }
@@ -570,7 +570,7 @@ body.theme-classcard .brand-main>b{
 }
 body.theme-classcard .theme-switch{border:1px solid #d8dde5;border-radius:5px;box-shadow:none;background:#f4f5f7}
 body.theme-classcard .theme-switch button{border-radius:3px;padding:7px 11px}
-body.theme-classcard .theme-switch button.active{background:var(--accent);box-shadow:0 1px 2px rgba(139,67,15,.18);color:#fff}
+body.theme-classcard .theme-switch button.active{background:var(--accent);box-shadow:0 1px 2px rgba(20,101,63,.18);color:#fff}
 body.theme-classcard .landing-inner{width:100%}
 body.theme-classcard .classcard-set-head{
   display:grid;
@@ -598,7 +598,7 @@ body.theme-classcard .classcard-cover{
   color:#fff;
 }
 body.theme-classcard .classcard-cover::before{position:absolute;inset:0 0 auto;height:7px;background:var(--accent);content:""}
-body.theme-classcard .classcard-cover span{color:#ffb276;font-size:12px;font-weight:900}
+body.theme-classcard .classcard-cover span{color:#9ee0bc;font-size:12px;font-weight:900}
 body.theme-classcard .classcard-cover strong{margin-top:3px;font-size:17px;letter-spacing:.025em}
 body.theme-classcard .classcard-cover i{margin-top:8px;color:#dce5f5;font-size:11px;font-style:normal;font-weight:750}
 body.theme-classcard .classcard-eyebrow{display:block;margin-bottom:6px;color:var(--accent);font-size:11px;font-weight:900}
@@ -632,7 +632,7 @@ body.theme-classcard #landingView .type-btn,body.theme-classcard #landingView .t
   transform:none;
 }
 body.theme-classcard #landingView .type-btn::before{display:none}
-body.theme-classcard #landingView .type-btn:hover{border-color:#f3a46a;box-shadow:0 4px 11px rgba(84,53,30,.10);transform:translateY(-1px)}
+body.theme-classcard #landingView .type-btn:hover{border-color:#82cda5;box-shadow:0 4px 11px rgba(30,101,66,.10);transform:translateY(-1px)}
 body.theme-classcard #landingView .type-btn:active{box-shadow:0 1px 3px rgba(31,45,70,.08);transform:none}
 body.theme-classcard #landingView .type-btn .mode-no{margin-bottom:10px;color:#949aa6;font-size:9px;letter-spacing:.08em}
 body.theme-classcard #landingView .type-mark{
@@ -656,8 +656,8 @@ body.theme-classcard #landingView .type-btn .type-go{
   margin:18px -19px 0;
   margin-top:auto;
   padding:11px 16px;
-  border-top:1px solid #ebc39f;
-  background:#fff6ef;
+  border-top:1px solid #b8dfca;
+  background:#f1faf5;
   color:var(--accent);
   font-size:12px;
   font-weight:900;
@@ -673,7 +673,7 @@ body.theme-classcard .difficulty-view h1{margin-bottom:8px;color:var(--navy);fon
 body.theme-classcard .difficulty-view p{margin-bottom:22px}
 body.theme-classcard .step-label{border:0;border-radius:3px;background:var(--accent2);color:var(--accent)}
 body.theme-classcard .difficulty-grid .type-btn{min-height:210px;padding:23px;border:1px solid #daddE4;border-radius:6px;background:#fff;box-shadow:none}
-body.theme-classcard .difficulty-grid .type-btn:hover{border-color:#f2a064;box-shadow:0 3px 9px rgba(84,53,30,.09);transform:translateY(-1px)}
+body.theme-classcard .difficulty-grid .type-btn:hover{border-color:#79c79d;box-shadow:0 3px 9px rgba(30,101,66,.09);transform:translateY(-1px)}
 body.theme-classcard .difficulty-grid .type-btn:first-child,body.theme-classcard .difficulty-grid .type-btn:last-child{background:#fff}
 body.theme-classcard .difficulty-grid .type-btn:first-child .type-mark{border:0;background:var(--accent2);color:var(--accent)}
 body.theme-classcard .difficulty-grid .type-btn:last-child .type-mark{border:0;background:#eaf0f8;color:var(--navy)}
@@ -689,17 +689,17 @@ body.theme-classcard .section-title::before{width:4px;height:16px;border-radius:
 body.theme-classcard .group{border:1px solid #dfe3e9;border-radius:5px}
 body.theme-classcard .group.open{border-color:#cbd2dc}
 body.theme-classcard .group-head{padding:13px 14px}
-body.theme-classcard .group.open .group-head{background:#faf7f4}
+body.theme-classcard .group.open .group-head{background:#f4faf7}
 body.theme-classcard .group-body{border-top:1px solid #dfe3e9;background:#f7f8fa}
 body.theme-classcard .q-item span{border:1px solid #dce1e8;border-radius:4px;font-weight:800}
-body.theme-classcard .q-item input:checked+span{border:1px solid var(--accent);background:var(--accent2);box-shadow:none;color:#c65d0e}
+body.theme-classcard .q-item input:checked+span{border:1px solid var(--accent);background:var(--accent2);box-shadow:none;color:#147548}
 body.theme-classcard .section-row{border:1px solid #dce1e8;border-radius:4px}
-body.theme-classcard .section-row:has(input:checked){border:1px solid var(--accent);background:#fff7f1;box-shadow:none}
+body.theme-classcard .section-row:has(input:checked){border:1px solid var(--accent);background:#f1faf5;box-shadow:none}
 body.theme-classcard .segment{border:0;border-radius:4px;background:#eef0f3}
 body.theme-classcard .segment button{border-radius:3px}
 body.theme-classcard .segment button.active{outline:0;background:#fff;box-shadow:0 1px 3px rgba(31,45,70,.12);color:var(--navy)}
 body.theme-classcard .start{border:0;border-radius:4px;background:var(--accent);box-shadow:none}
-body.theme-classcard .start:not(:disabled):hover{background:#e66d14}
+body.theme-classcard .start:not(:disabled):hover{background:#188753}
 body.theme-classcard .start:not(:disabled):active{box-shadow:none;transform:none}
 body.theme-classcard .start:disabled{border:0;background:#cfd4db;box-shadow:none}
 body.theme-classcard .navbtn{border:1px solid #d8dde5;border-radius:4px;box-shadow:none;font-weight:850}
